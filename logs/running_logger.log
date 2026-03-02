@@ -10332,3 +10332,5 @@ d0:0d:07:f0:0e:23  3940609482 (local)  757      1904153933  0     0.0.0.0       
 
 2026-02-28 19:31:49 - running_logger - INFO - 任务执行成功，任务ID：6654f183
 2026-02-28 19:31:49 - running_logger - DEBUG - 连接关闭
+2026-03-02 17:31:08 - running_logger - DEBUG - exec cmd: cd /bhci/nvs;./nvs-tool map dump bridge
+2026-03-02 17:31:08 - running_logger - INFO - sshToEnv.exec_cmd方法调用ssh链接关闭,func params:(<utils.ssh_host.sshToEnv object at 0x0000020F7CBCFC70>, 'cd /bhci/nvs;./nvs-tool map dump bridge')

@@ -197,7 +197,9 @@ class TestCreateAddressTransform:
                 if nat_rule.get('dIps', '')[0] == des_ip:
                     is_success = True
                     break
-            assert is_success, f'{route_id}下未找到对应的SNAT规则'
+            if not is_success:
+                self.logger.error(f'{route_id}下未找到对应的SNAT规则')
+                assert False, f'{route_id}下未找到对应的SNAT规则'
 
             # 断言3：SNAT规则是否正常下发
             snat_map_nums, _ = self.ssh.exec_cmd(f'/bhci/nvs/nvs-tool map dump snat|grep {des_ip}|wc -l')
@@ -205,13 +207,17 @@ class TestCreateAddressTransform:
             if not payload['isAll']:
                 assert len(payload['transformDevices']) == int(snat_map_nums), 'SNAT规则下发失败'
                 for transformdevice in payload['transformDevices']:
-                    assert transformdevice['ip'] in snat_map, 'SNAT规则下发失败'
+                    if transformdevice['deviceName'] not in snat_map:
+                        self.logger.error(f'SNAT下发失败')
+                        assert False in snat_map, 'SNAT规则下发失败'
             else:
                 conn_sw = self.address_transform.get_connected_sw(route_id, kind_of_transform)
                 conn_sw = json.loads(conn_sw)
                 assert conn_sw['total'] == int(snat_map_nums), 'SNAT规则下发失败'
                 for swc in conn_sw['data']:
-                    assert swc['subnet']['cidr'] in snat_map, 'SNAT规则下发失败'
+                    if swc['subnet']['cidr'] not in snat_map:
+                        self.logger.error(f'SNAT下发失败')
+                        assert False, 'SNAT规则下发失败'
 
         if kind_of_transform == 'AddressTransformDNAT':
             # 断言2：NAT规则是否创建成功
@@ -231,12 +237,16 @@ class TestCreateAddressTransform:
                 if des_ip in nat_rule.get('dIps', '') and payload['protocol'] == nat_rule['protocol'] and payload['DNatDstPort'] == nat_rule['DNatDstPort']:
                     is_success = True
                     break
-            assert is_success, f'DNAT创建失败'
+            if not is_success:
+                self.logger.error(f'DNAT创建失败')
+                assert False, 'DNAT创建失败'
 
             # 断言3：DNAT规则是否正常下发
             for nvs_map in nvs_map_key:
                 dnat_map, _ = self.ssh.exec_cmd(f"/bhci/nvs/nvs-tool map dump dnat|grep {des_ip}|grep {payload['protocol']}|grep {payload['DNatDstPort']}|grep {payload['DNatSrcPort']}|grep {nvs_map[0]}|grep {nvs_map[1]}")
-                assert dnat_map != '', 'DNAT规则下发失败'
+                if dnat_map != '':
+                    self.logger.error(f'DNAT规则下发失败,节点map查询：{dnat_map}')
+                    assert False, 'DNAT规则下发失败'
           
     @pytest.mark.parametrize('dv_route_id', ['dvr-004258bfb9'])
     @pytest.mark.parametrize('upLink_deviceid', ['nicoutlet-00b2799d13'])

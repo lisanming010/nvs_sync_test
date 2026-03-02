@@ -47,7 +47,7 @@ class sshToEnv:
         '''
         ssh连接方法
         '''
-        self.ssh.connect(self.hostname, self.port, self.username, self.passwd)
+        self.ssh.connect(self.hostname, self.port, self.username, self.passwd, banner_timeout=20)
 
     @_close_ssh
     def exec_cmd(self, cmd:str, ssh_client:paramiko=None, get_pty=False, close_ssh=True) -> tuple:

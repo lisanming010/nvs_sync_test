@@ -227,10 +227,10 @@ class TestCreateVM1:
 
         vnic_conf['ipv4Enable'] = enable_ipv4
         if enable_dhcpv4 == False and enable_ipv4 == True and specify_ipv4:
-            ip_parts_base = [random.randint(0, 255) for _ in range(3)]
+            ip_parts_base = [random.randint(1, 255) for _ in range(3)]
             ip_addr = '.'.join(map(str, ip_parts_base))
             
-            vnic_conf['ipAddress'] = ip_addr + '.' + str(random.randint(0, 255))
+            vnic_conf['ipAddress'] = ip_addr + '.' + str(random.randint(1, 255))
             vnic_conf['netMask'] = '255.255.255.0'
             vnic_conf['gatewayIp'] = ip_addr + '.1'
 
@@ -239,7 +239,7 @@ class TestCreateVM1:
             ipv6_parts = [random.randint(0, 0xFFFF) for _ in range(2)]
             base_ipv6 = ":".join(f"{part:x}" for part in ipv6_parts)
  
-            vnic_conf['ipv6Address'] = f'{base_ipv6}::{random.randint(0, 0xFFFF):x}'
+            vnic_conf['ipv6Address'] = f'{base_ipv6}::{random.randint(1, 0xFFFF):x}'
             vnic_conf['ipv6NetMask'] = 'ffff:ffff:ffff:ffff::'
             vnic_conf['ipv6Gateway'] = f'{base_ipv6}::1'
 
