@@ -207,8 +207,8 @@ class TestCreateAddressTransform:
             if not payload['isAll']:
                 assert len(payload['transformDevices']) == int(snat_map_nums), 'SNAT规则下发失败'
                 for transformdevice in payload['transformDevices']:
-                    if transformdevice['deviceName'] not in snat_map:
-                        self.logger.error(f'SNAT下发失败')
+                    if transformdevice['ip'] not in snat_map:
+                        self.logger.error(f'SNAT下发失败, snat_map: {snat_map}')
                         assert False, 'SNAT规则下发失败'
             else:
                 conn_sw = self.address_transform.get_connected_sw(route_id, kind_of_transform)
