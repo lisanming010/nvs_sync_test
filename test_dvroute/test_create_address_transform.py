@@ -209,7 +209,7 @@ class TestCreateAddressTransform:
                 for transformdevice in payload['transformDevices']:
                     if transformdevice['deviceName'] not in snat_map:
                         self.logger.error(f'SNAT下发失败')
-                        assert False in snat_map, 'SNAT规则下发失败'
+                        assert False, 'SNAT规则下发失败'
             else:
                 conn_sw = self.address_transform.get_connected_sw(route_id, kind_of_transform)
                 conn_sw = json.loads(conn_sw)
