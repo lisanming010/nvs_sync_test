@@ -169,15 +169,16 @@ class TestCreateVM1:
             loop_count += 1
         
         hostId = vm_info['data']['hostId']
+        time.sleep(1)
         vnic_map, _ = self.ssh.exec_cmd(f'ssh {hostId} "/bhci/nvs/nvs-tool map dump nic"')
         self.logger.debug(f'vnic nvs map：\n{vnic_map}\n')
         vnic_confs = vm_info['data']['vmConfig']['networkInterfaces']
         for vnic_conf in vnic_confs:
             vnic_mac = vnic_conf['hwAddr']
             self.logger.debug(f'vnic mac：{vnic_mac}')
-
-            # 断言：虚拟机网卡数据是否下发至nvsmap
-            assert vnic_mac in vnic_map, f'虚拟机{vm_name}的vnic nvs map下发失败，虚拟机名称：{vm_name}'
+            if vnic_mac not in vnic_map:
+                self.logger.error(f'虚拟机{vm_name}的vnic nvs map下发失败，虚拟机名称：{vm_name},map：{vnic_map}')
+                assert False, f'虚拟机{vm_name}的vnic nvs map下发失败，虚拟机名称：{vm_name}'
 
         self.logger.debug(f'虚拟机{vm_name}的vnic nvs map下发成功，虚拟机名称：{vm_name}')
 
