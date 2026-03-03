@@ -1,4 +1,4 @@
-import pytest, json, random
+import pytest, json, random, time
 from utils.logger_config import running_logger
 from utils.ssh_host import sshToEnv
 from utils.tools import nvs_map_comparison, list_id_2_map_id, map_id_2_list_id
@@ -202,8 +202,13 @@ class TestCreateAddressTransform:
                 assert False, f'{route_id}下未找到对应的SNAT规则'
 
             # 断言3：SNAT规则是否正常下发
-            snat_map_nums, _ = self.ssh.exec_cmd(f'/bhci/nvs/nvs-tool map dump snat|grep {des_ip}|wc -l')
-            snat_map, _ = self.ssh.exec_cmd(f'/bhci/nvs/nvs-tool map dump snat|grep {des_ip}')
+            for _ in range(5):
+                snat_map_nums, _ = self.ssh.exec_cmd(f'/bhci/nvs/nvs-tool map dump snat|grep {des_ip}|wc -l')
+                snat_map, _ = self.ssh.exec_cmd(f'/bhci/nvs/nvs-tool map dump snat|grep {des_ip}')
+                if snat_map_nums != '' and snat_map != '':
+                    break
+                else:
+                    time.sleep(1)
             if not payload['isAll']:
                 assert len(payload['transformDevices']) == int(snat_map_nums), 'SNAT规则下发失败'
                 for transformdevice in payload['transformDevices']:
@@ -213,7 +218,7 @@ class TestCreateAddressTransform:
             else:
                 conn_sw = self.address_transform.get_connected_sw(route_id, kind_of_transform)
                 conn_sw = json.loads(conn_sw)
-                assert conn_sw['total'] == int(snat_map_nums), 'SNAT规则下发失败'
+                assert conn_sw['total'] == int(snat_map_nums), 'SNAT规则下发失败或nvs_map采集超时'
                 for swc in conn_sw['data']:
                     if swc['subnet']['cidr'] not in snat_map:
                         self.logger.error(f'SNAT下发失败')
