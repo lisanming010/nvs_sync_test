@@ -248,7 +248,12 @@ class TestCreateAddressTransform:
 
             # 断言3：DNAT规则是否正常下发
             for nvs_map in nvs_map_key:
-                dnat_map, _ = self.ssh.exec_cmd(f"/bhci/nvs/nvs-tool map dump dnat|grep {des_ip}|grep {payload['protocol']}|grep {payload['DNatDstPort']}|grep {payload['DNatSrcPort']}|grep {nvs_map[0]}|grep {nvs_map[1]}")
+                for _ in range(5):
+                    dnat_map, _ = self.ssh.exec_cmd(f"/bhci/nvs/nvs-tool map dump dnat|grep {des_ip}|grep {payload['protocol']}|grep {payload['DNatDstPort']}|grep {payload['DNatSrcPort']}|grep {nvs_map[0]}|grep {nvs_map[1]}")
+                    if dnat_map != '':
+                        break
+                    else:
+                        time.sleep(1)
                 if dnat_map == '':
                     self.logger.error(f'DNAT规则下发失败,节点map查询：{dnat_map}')
                     assert False, 'DNAT规则下发失败'
