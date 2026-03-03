@@ -74,7 +74,8 @@ def nvs_map_comparison(ssh:sshToEnv, map_name:str)->bool:
                 break
         
         if not is_pass:
-            running_logger.debug(f'节点间nvs_map不一致，可能部分节点未及时下发，重试次数：{i}')
+            running_logger.debug(f'节点间nvs_map不一致，可能部分节点未及时下发，重试次数：{i+1}')
+            time.sleep(1)
         else:
             break  
         

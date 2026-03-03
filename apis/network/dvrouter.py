@@ -230,5 +230,3 @@ class AddressTransform:
         payload = {"addressTransferId":transform_id}
 
         res = self.req_session.post(self.delete_transform_api, json.dumps(payload), '', headers={'Content-Type': 'application/json'})
-        
-    
