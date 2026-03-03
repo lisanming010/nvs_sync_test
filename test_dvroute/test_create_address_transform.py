@@ -187,10 +187,12 @@ class TestCreateAddressTransform:
 
         des_ip = payload.get('ipPoolAllocatedIP', '')
 
+        kind_of_transform = 'snat' if kind_of_transform == 'AddressTransformSNAT' else 'dnat'
+
         # 断言1：各节点间NAT map条数是否一致。
         assert nvs_map_comparison(self.ssh, kind_of_transform)
 
-        if kind_of_transform == 'AddressTransformSNAT':
+        if kind_of_transform == 'snat':
             # 断言2：NAT规则是否创建成功
             is_success = False
             for nat_rule in nat_list:
@@ -224,7 +226,7 @@ class TestCreateAddressTransform:
                         self.logger.error(f'SNAT下发失败')
                         assert False, 'SNAT规则下发失败'
 
-        if kind_of_transform == 'AddressTransformDNAT':
+        if kind_of_transform == 'dnat':
             # 断言2：NAT规则是否创建成功
             nvs_map_key = []
 
