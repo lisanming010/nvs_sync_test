@@ -57,12 +57,14 @@ def nvs_map_comparison(ssh:sshToEnv, map_name:str)->bool:
     for i in range(3):
         is_pass = True
         map_lines_tmp, stderr = ssh.exec_cmd(f'ssh {pop_ip} "/bhci/nvs/nvs-tool map dump {map_name}|wc -l"')
+        pop_ip_map, stderr = ssh.exec_cmd(f'ssh {pop_ip} "/bhci/nvs/nvs-tool map dump {map_name}"')
         if stderr and 'Authorized users only' not in stderr:
             running_logger.error(f'节点{pop_ip}ssh命令执行失败，命令执行报错：\n{stderr}')
             raise RuntimeError('ssh命令执行失败')
 
         for ip in node_ip_list:
             stdout, stderr = ssh.exec_cmd(f'ssh {ip} "/bhci/nvs/nvs-tool map dump {map_name}|wc -l"')
+            node_map, stderr = ssh.exec_cmd(f'ssh {ip} "/bhci/nvs/nvs-tool map dump {map_name}"')
             
             if stderr and 'Authorized users only' not in stderr:
                 running_logger.error(f'节点{ip}ssh命令执行失败，命令执行报错：\n{stderr}')
@@ -70,7 +72,8 @@ def nvs_map_comparison(ssh:sshToEnv, map_name:str)->bool:
             
             if stdout != map_lines_tmp:
                 running_logger.error(f'节点{pop_ip}与{ip}的nvs_map不一致，请检查！')
-                running_logger.error(f'{pop_ip}的nvs_map：\n{map_lines_tmp}\nnvs_map：\n{stdout}')
+                running_logger.error(f'{pop_ip}的nvsmap行数：{map_lines_tmp}，{ip}的nvsmap行数：{stdout}')
+                running_logger.error(f'{pop_ip}的nvs_map：\n{pop_ip_map}\nnvs_map：\n{node_map}')
                 is_pass = False
                 break
         
