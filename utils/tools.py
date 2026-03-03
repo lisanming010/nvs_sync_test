@@ -70,6 +70,7 @@ def nvs_map_comparison(ssh:sshToEnv, map_name:str)->bool:
             
             if stdout != map_lines_tmp:
                 running_logger.error(f'节点{pop_ip}与{ip}的nvs_map不一致，请检查！')
+                running_logger.error(f'{pop_ip}的nvs_map：\n{map_lines_tmp}\nnvs_map：\n{stdout}')
                 is_pass = False
                 break
         

@@ -188,7 +188,7 @@ class TestCreateAddressTransform:
         des_ip = payload.get('ipPoolAllocatedIP', '')
 
         # 断言1：各节点间NAT map条数是否一致。
-        assert nvs_map_comparison(self.ssh, 'snat')
+        assert nvs_map_comparison(self.ssh, kind_of_transform)
 
         if kind_of_transform == 'AddressTransformSNAT':
             # 断言2：NAT规则是否创建成功
