@@ -1,5 +1,6 @@
 import json
 import time
+import ipaddress
 from utils.logger_config import running_logger
 from utils.ssh_host import sshToEnv
 
@@ -84,6 +85,44 @@ def nvs_map_comparison(ssh:sshToEnv, map_name:str)->bool:
             break  
         
     return is_pass
+
+def parse_nvs_map(nvs_map:str)->list[dict,]:
+    """
+    nvs_map解析
+
+    :param nvs_map: nvs_map内容,原始字符串
+    :return: 解析后的nvs_map
+    """
+    nvs_map_list = []
+
+    stdout_list = nvs_map.rstrip().split('\n')
+    if len(stdout_list) < 2:
+        return []
+    header = stdout_list.pop(0).split()
+
+    for line in stdout_list:
+        nvs_map_dict = {}
+        line = line.split()
+        for i in range(len(header)):
+            nvs_map_dict[header[i]] = line[i]
+        nvs_map_list.append(nvs_map_dict)
+
+    return nvs_map_list
+
+def ipv4_prefix_2_netmask(ipv4_prefix:str):
+    """
+    将子网掩码前缀转换为对应的子网掩码
+
+    :param ipv4_prefix: 子网掩码前缀，如 24
+    :return: 对应的子网掩码，如 255.255.255.0
+    """
+    ipv4_prefix = int(ipv4_prefix)
+    if ipv4_prefix < 0 or ipv4_prefix > 32:
+        raise ValueError(f"子网掩码前缀必须是 0-32 之间的整数,{ipv4_prefix}不合法")
+    
+    # 构造一个临时的 IPv4 网络（如 0.0.0.0/24），获取其掩码
+    temp_network = ipaddress.IPv4Network(f"0.0.0.0/{ipv4_prefix}", strict=False)
+    return str(temp_network.netmask)
 
 def list_id_2_map_id(list_id:str)->str:
     return str(int(list_id, 16))
