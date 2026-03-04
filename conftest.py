@@ -4,7 +4,7 @@ from utils.requests_wrapper import RequestWrap
 from utils.logger_config import running_logger
 from urllib.parse import quote
 
-@pytest.fixture(scope='session')
+@pytest.fixture(scope='class')
 def login(request):
     if hasattr(request, 'param') and request.param != None:
         username, passwd = request.param

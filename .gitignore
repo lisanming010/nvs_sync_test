@@ -5,3 +5,5 @@
 /logs/*
 */__pycache__
 apis/network/__pycache__/dvrouter.cpython-39.pyc
+apis/computer/__pycache__/instance.cpython-39.pyc
+apis/network/__pycache__/dvswitch.cpython-39.pyc
