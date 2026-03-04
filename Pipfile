@@ -7,6 +7,7 @@ name = "pip_conf_index_global"
 pytest = "*"
 requests = "*"
 paramiko = "*"
+pytest-xdist = "*"
 
 [dev-packages]
 

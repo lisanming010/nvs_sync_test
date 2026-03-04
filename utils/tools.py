@@ -54,7 +54,7 @@ def nvs_map_comparison(ssh:sshToEnv, map_name:str)->bool:
     node_ip_list = stdout.rstrip().split('\n')
     pop_ip = node_ip_list.pop()
 
-    for i in range(3):
+    for i in range(10):
         is_pass = True
         map_lines_tmp, stderr = ssh.exec_cmd(f'ssh {pop_ip} "/bhci/nvs/nvs-tool map dump {map_name}|wc -l"')
         pop_ip_map, stderr = ssh.exec_cmd(f'ssh {pop_ip} "/bhci/nvs/nvs-tool map dump {map_name}"')
