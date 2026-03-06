@@ -33,7 +33,6 @@ def login(request):
     # SSOlogin，获取token
     sso_login_payload = {"code":code,"state":"","redirectUrl":""}
     res = requests_session.post('/bcs/api/auth/ssoLogin', json.dumps(sso_login_payload), params='', headers={'Content-Type': 'application/json'})
-    print(res)
     token = json.loads(res)['data']['accessToken']
 
     # 更新session headers

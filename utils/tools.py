@@ -2,6 +2,7 @@ import json
 import time
 import ipaddress
 import base64
+import random
 from utils.logger_config import running_logger
 from utils.ssh_host import sshToEnv
 
@@ -143,6 +144,33 @@ def base64_decode(encoded_str:str):
     except Exception as e:
         print(f"解码失败: {e}")
         return None
+
+def make_random_ip(ip_type:str)->tuple[str, dict]:
+    """
+    生成测试用IP地址
+
+    :param ip_type: ipv4或ipv6
+    :return: ip_addr_part('xxxx:xxxx::/xxx.xxx.xxx.'), ip_dict
+    """
+
+    if ip_type == 'ipv4':
+        ipv4_dict = {}
+        ip_parts = [random.randint(0, 200) for _ in range(3)]
+        ip_addr_part = '.'.join(map(str, ip_parts))
+        ipv4_dict['ip'] = ip_addr_part + '.10'
+        ipv4_dict['netMask'] = '255.255.255.0'
+        ipv4_dict['gateway'] = ip_addr_part + '.1'
+        return ip_addr_part, ipv4_dict
+    elif ip_type == 'ipv6':
+        ipv6_dict = {}
+        ipv6_parts = [random.randint(0, 0xFFFF) for _ in range(2)]
+        base_ipv6 = ":".join(f"{part:x}" for part in ipv6_parts)
+        ipv6_dict['ip'] = base_ipv6 + '::10'
+        ipv6_dict['netMask'] = 'ffff:ffff:ffff:ffff::'
+        ipv6_dict['gateway'] = base_ipv6 + '::1'
+        return base_ipv6, ipv6_dict
+    else:
+        raise ValueError('ip_type参数错误')
 
 def list_id_2_map_id(list_id:str)->str:
     return str(int(list_id, 16))

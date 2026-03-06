@@ -8,7 +8,7 @@ from copy import deepcopy
 from datetime import datetime
 from utils.ssh_host import sshToEnv
 from utils.vm_gust_exec import GustExec
-from utils.tools import nvs_map_comparison, list_id_2_map_id, parse_nvs_map, ipv4_prefix_2_netmask
+from utils.tools import nvs_map_comparison, list_id_2_map_id, parse_nvs_map, ipv4_prefix_2_netmask, make_random_ip
 from apis.network.dvswitch import DvSwitch
 from apis.computer.instance import Instance
 
@@ -155,7 +155,7 @@ class TestCreateDvSwitch:
             assert is_pass, 'dhcpv6 map中无对应交换机记录'
 
         # 断言6：交换机下虚拟机联通性
-        vm_list = asyncio.run(self.async_create_downstrem_vm(dvswitch_id, dv_switch_name, payload['dhcpEnable'], payload['ipv6Enable'], ipv4_dict, ipv6_dict))
+        vm_list = asyncio.run(self.async_create_downstrem_vm(dvswitch_id, dv_switch_name, ipv4_dict, ipv6_dict))
         for vm in vm_list:
             dst_vm_list = vm_list[:]
             dst_vm_list.remove(vm)
@@ -200,7 +200,7 @@ class TestCreateDvSwitch:
         return dvswitch_id
     
     def create_downstream_vm(self, dvswitch_id:str, dvswitch_name:str,
-                             is_dhcp:bool, is_dhcpv6:bool, ipv4_info:dict={}, ipv6_info:dict={})->list:
+                             ipv4_info:dict={}, ipv6_info:dict={})->list:
         """
         分布式交换机下行vm创建方法
 
@@ -243,8 +243,7 @@ class TestCreateDvSwitch:
         return vm_id, host_ip, ip_addr, ipv6_addr
 
     async def async_create_downstrem_vm(self, dvswitch_id:str, dvswitch_name:str,
-                             is_dhcp:bool, is_dhcpv6:bool, ipv4_info:dict={}, ipv6_info:dict={},
-                             create_vm_nums:int=2)->str:
+                             ipv4_info:dict={}, ipv6_info:dict={}, create_vm_nums:int=2)->str:
         
         loop = asyncio.get_event_loop()
         tasks = []
@@ -263,7 +262,7 @@ class TestCreateDvSwitch:
             ipv6_addr = '::'.join(map(str, ipv6_addr))
             ipv6_info_copy['ip'] = ipv6_addr
 
-            args = (dvswitch_id, dvswitch_name, is_dhcp, is_dhcpv6, ipv4_info_copy, ipv6_info_copy)
+            args = (dvswitch_id, dvswitch_name, ipv4_info_copy, ipv6_info_copy)
 
             task = loop.run_in_executor(None, self.create_downstream_vm, *args)
             tasks.append(task)
@@ -295,19 +294,8 @@ class TestCreateDvSwitch:
         payload['switchName'] = switch_name
         payload['upLinkDeviceId'] = up_link
 
-        ipv4_dict = {}
-        ip_parts = [random.randint(0, 200) for _ in range(3)]
-        ip_addr_part = '.'.join(map(str, ip_parts))
-        ipv4_dict['ip'] = ip_addr_part + '.10'
-        ipv4_dict['netMask'] = '255.255.255.0'
-        ipv4_dict['gateway'] = ip_addr_part + '.1'
-
-        ipv6_dict = {}
-        ipv6_parts = [random.randint(0, 0xFFFF) for _ in range(2)]
-        base_ipv6 = ":".join(f"{part:x}" for part in ipv6_parts)
-        ipv6_dict['ip'] = base_ipv6 + '::10'
-        ipv6_dict['netMask'] = 'ffff:ffff:ffff:ffff::'
-        ipv6_dict['gateway'] = base_ipv6 + '::1'
+        ip_addr_part, ipv4_dict = make_random_ip('ipv4')
+        base_ipv6, ipv6_dict = make_random_ip('ipv6')
 
         if dhcp_enable:
             payload['dhcpEnable'] = True
@@ -342,8 +330,9 @@ class TestCreateDvSwitch:
         switch_name = 'test_maclearn_' + time_now
         payload['switchName'] = switch_name
 
-        self.dvswitch.create_dvswitch(payload)
+        _, ipv4_dict = make_random_ip('ipv4')
+        _, ipv6_dict = make_random_ip('ipv6')
 
-        dv_switch_id = self.assert_dvswitch_info(payload, self.req_session)
-
+        res = self.dvswitch.create_dvswitch(payload)
+        dv_switch_id = self.assert_dvswitch_info(payload, ipv4_dict, ipv6_dict)
         self.dvswitch.delete_dvswitch(dv_switch_id)

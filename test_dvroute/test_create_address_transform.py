@@ -13,6 +13,7 @@ def setup_class_fixture(request, login):
     test_class.req_session, *_ = login
     test_class.ssh = sshToEnv('10.16.221.154', 'pass@hci1')
     test_class.address_transform = AddressTransform(test_class.req_session)
+    test_class.logger.debug(f'TestCreateAddressTransform类初始化完成')
 
 class TestCreateAddressTransform:
 
