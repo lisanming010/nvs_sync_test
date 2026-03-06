@@ -1,6 +1,7 @@
 import json
 import time
 import ipaddress
+import base64
 from utils.logger_config import running_logger
 from utils.ssh_host import sshToEnv
 
@@ -123,6 +124,25 @@ def ipv4_prefix_2_netmask(ipv4_prefix:str):
     # 构造一个临时的 IPv4 网络（如 0.0.0.0/24），获取其掩码
     temp_network = ipaddress.IPv4Network(f"0.0.0.0/{ipv4_prefix}", strict=False)
     return str(temp_network.netmask)
+
+def base64_decode(encoded_str:str):
+    """
+    Base64解码函数（处理字符串输入）
+    
+    :param encoded_str: Base64编码的字符串（如QGA返回的out-data）
+    :return: 解码后的原始字符串
+    """
+    try:
+        encoded_bytes = encoded_str.encode('utf-8')
+        padding = 4 - (len(encoded_bytes) % 4)
+        if padding != 4:
+            encoded_bytes += b'=' * padding
+        decoded_bytes = base64.b64decode(encoded_bytes)
+        decoded_str = decoded_bytes.decode('utf-8')
+        return decoded_str
+    except Exception as e:
+        print(f"解码失败: {e}")
+        return None
 
 def list_id_2_map_id(list_id:str)->str:
     return str(int(list_id, 16))

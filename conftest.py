@@ -44,7 +44,6 @@ def login(request):
     requests_session.close_session()
     running_logger.debug(f'连接关闭')
     
-@pytest.mark.parametrize('login', [('admin','FBurr8dTjJ2XUg+l36BC0xsihbTIdSWdNdmFFyIv0cTDIyYbm3EF+w+BvphM72vyIbBQ06BrL8+uOXvljZFCYqSCxjhA8B5viv3dRdmiysGFYlYcmiPUy1AWkAyGpZpf79/avKHgECnInEk/GK9CvRT++y47BGx5a9T+kBby9og=')], indirect=True)
 @pytest.fixture(scope='class')
 def preare_dvswitch(request):
     pass

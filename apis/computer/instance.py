@@ -1,4 +1,4 @@
-import json
+import json, time
 from copy import deepcopy
 from utils.logger_config import running_logger
 from utils.tools import watch_task
@@ -60,7 +60,7 @@ CREATE_DATA = {
             {
                 "volumeSize":20,
                 "volumeName":"",
-                "volumeId":"",
+                "volumeId":"vol-00f3ef8d62",
                 "hasOperatingSystem":True,
                 "srcFileId":"",
                 "srcSnapshotId":"",
@@ -124,7 +124,7 @@ CREATE_DATA = {
     },
     "cloneMode":"fastFullClone",
     "count":1,
-    "srcInstanceId":"i-009df1cf60",
+    "srcInstanceId":"i-00e8c69c7e",
     "srcTemplateId":"vmt-00e8c69c7e",
     "startAfterCreated":True,
     "sufBegin":1,
@@ -177,7 +177,8 @@ class Instance:
             raise RuntimeError(f'虚拟机关机失败，虚拟机名称：{vm_id}')
 
     def delete_vm(self, vm_id:str, login_user_passwd:str,
-              deleteDirectly:bool=True, skip_if_shutdown_fail:bool=True):
+              deleteDirectly:bool=True, skip_if_shutdown_fail:bool=True,
+              watch_delete:bool=False):
         """
         关闭虚拟机并删除
 
@@ -202,7 +203,51 @@ class Instance:
                 }
 
             res = self.req_session.post(self.delete_vm_api, json.dumps(payload), '', headers={'Content-Type':'application/json'})
+            if watch_delete:
+                res_json = json.loads(res)
+                task_id = res_json['data']['taskIds'][0]
+                if watch_task(task_id, self.req_session):
+                    self.logger.debug(f'虚拟机删除成功，虚拟机名称：{vm_id}')
 
-    def create_vm(self, payload:dict)->str:
+    def create_vm(self, payload:dict, watch_is_start:bool, watch_satrt_timeout:int=300)->tuple[str, str]:
+        """
+        创建虚拟机方法
+
+        :param payload: 创建虚拟机的payload
+        :param watch_is_start: 创建虚拟机时是否启动虚拟机
+        :param watch_satrt_timeout: 创建虚拟机时启动虚拟机任务监控超时时间，单位s
+        :return: 创建虚拟机成功时返回虚拟机ID，以及虚拟机详情(可被json序列化)
+        :rtype: tuple[vm_id:str, vm_info:str]
+        """
         res = self.req_session.post(self.create_by_templ_api, json.dumps(payload), '', headers={'Content-Type': 'application/json'})
-        return res
+        
+        # 虚拟机创建任务监控
+        res_json = json.loads(res)
+        task_id = res_json['data']['taskIds'][0]
+        vm_id, = res_json['data']['instanceTaskMap'].keys()
+        is_success_create = watch_task(task_id, self.req_session)
+        if not is_success_create:
+            self.logger.error(f'虚拟机创建失败，虚拟机名称：{vm_id}')
+            raise RuntimeError(f'虚拟机创建失败，虚拟机名称：{vm_id}')
+        else:
+            self.logger.info(f'虚拟机创建成功，虚拟机名称：{vm_id}')
+
+        vm_info = self.get_vm_info(vm_id)
+
+        # 虚拟机启动任务监控，用于创建虚拟机时勾选自动启动时的情况
+        if watch_is_start:
+            loop_count = 0
+            max_loop_count = watch_satrt_timeout // 3
+            while True:
+                if loop_count > max_loop_count:
+                    self.logger.error(f'等待虚拟机开机超时，等待时间：{watch_satrt_timeout}，虚拟机：{vm_id}')
+                    raise RuntimeError(f'等待虚拟机开机超时，虚拟机：{vm_id}')
+                vm_info = self.get_vm_info(vm_id)
+                vm_info_json = json.loads(vm_info)
+                if vm_info_json['data']['instanceStatus'] == 'running':
+                    break
+                else:
+                    time.sleep(3)
+                loop_count += 1
+        
+        return vm_id, vm_info
