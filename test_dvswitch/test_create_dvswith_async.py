@@ -309,7 +309,6 @@ class TestCreateDvSwitch:
             loop.run_in_executor(th_pool, self.nvs_bridge_map_assert, dvswitch_id, dv_switch_name),
             loop.run_in_executor(th_pool, self.nvs_dhcp_map_assert, payload, dvswitch_id),
             # loop.run_in_executor(th_pool, self.nvs_dhcp6_map_assert, payload, dvswitch_id),
-            # loop.run_in_executor(th_pool, self.vm_connectivity, dvswitch_id, dv_switch_name, ipv4_dict, ipv6_dict)
         ]
 
         async_tasks = [
