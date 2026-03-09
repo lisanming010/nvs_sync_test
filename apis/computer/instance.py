@@ -159,7 +159,7 @@ class Instance:
         res = self.req_session.get(self.view_vm_details_api, payload)
         return res
 
-    def shutdown_vm(self, vm_id:str, is_force:bool=False):
+    def shutdown_vm(self, vm_id:str, is_force:bool=True):
         """
         虚拟机关机,关机失败或任务监控超时则抛出runtimeerror
 
